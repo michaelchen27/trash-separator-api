@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"trash-separator/config"
 	"trash-separator/controllers"
 
@@ -51,5 +52,10 @@ func main() {
 		router.DELETE("/api/deleteTrashVersion/:trash_version_id", inDB.DeleteTrashVersion)
 	}
 
-	router.Run("localhost:8888")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+
+	router.Run(":" + port)
 }
