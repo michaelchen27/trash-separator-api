@@ -4,25 +4,25 @@ import (
 	"log"
 	"os"
 	"time"
+
 	"github.com/go-redis/redis"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"github.com/joho/godotenv"
 )
 
-
 func goDotEnvVariable(key string) string {
-    currentWorkDirectory, _ := os.Getwd()
+	currentWorkDirectory, _ := os.Getwd()
 
-    err := godotenv.Load(string(currentWorkDirectory) + `/.env`)
-  
+	err := godotenv.Load(string(currentWorkDirectory) + `/.env`)
+
 	if err != nil {
-	  log.Fatalf("Error loading .env file")
+		log.Fatalf("Error loading .env file")
 	}
 
 	return os.Getenv(key)
-  }
+}
 
 // DBInit create connection to database
 func DBInit() *gorm.DB {
@@ -37,7 +37,8 @@ func DBInit() *gorm.DB {
 	)
 
 	// dns := "root:@(localhost)/trash_separator?charset=utf8&parseTime=True&loc=Local"
-	dns := goDotEnvVariable("DATABASE_CREDS")
+	// dns := goDotEnvVariable("DATABASE_CREDS")
+	dns := os.Getenv("DATABASE_URL") //heroku postgres url
 	db, err := gorm.Open(postgres.Open(dns), &gorm.Config{
 		Logger: newLogger,
 	})
