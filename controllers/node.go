@@ -3,12 +3,14 @@ package controllers
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
 	"trash-separator/structs"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func (idb *InDB) RegisterUserTrashCan(c *gin.Context) {
@@ -33,8 +35,14 @@ func (idb *InDB) RegisterUserTrashCan(c *gin.Context) {
 
 	query := idb.DB.Table("trash").Select("*").Where("trash_code = ?", userInput.Trash_code).First(&trashObject)
 	if query.Error != nil {
-		result = gin.H{"status": "internal server error", "msg": "failed, database error fetch trash info"}
-		c.JSON(http.StatusInternalServerError, result)
+		log.Printf("error fetching data from database: %v", query.Error.Error())
+		if query.Error == gorm.ErrRecordNotFound {
+			result = gin.H{"status": "unauthorized", "mgs": "record not found"}
+			c.JSON(http.StatusBadRequest, result)
+		} else {
+			result = gin.H{"status": "internal server error", "msg": "failed, database error fetch trash info"}
+			c.JSON(http.StatusInternalServerError, result)
+		}
 		return
 	}
 
@@ -64,6 +72,7 @@ func (idb *InDB) RegisterUserTrashCan(c *gin.Context) {
 	queryUpdate := idb.DB.Table("trash").Save(&trashObject)
 	if queryUpdate.Error != nil {
 		result = gin.H{"status": "internal server error", "msg": "failed, internal server error in inserting data to database"}
+		log.Printf("error inserting to database: %v", queryUpdate.Error.Error())
 		c.JSON(http.StatusInternalServerError, result)
 		return
 	}
