@@ -43,6 +43,9 @@ func main() {
 	router.POST("/api/logout", inDB.AuthLogout)
 	router.GET("/", inDB.NotImplemented)
 
+	// Trash Registration
+	router.POST("/api/registerTrashCan", inDB.MWCheckUserTokenCookie(), inDB.RegisterUserTrashCan)
+
 	// Admin
 	router.Use(inDB.MWCheckUserTokenCookie())
 	{

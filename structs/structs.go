@@ -29,18 +29,18 @@ func (trash_version *Trash_version) TableName() string {
 }
 
 type Trash struct {
-	Id                     int
-	Trash_code             string
-	Assigned               string
-	Created_date           time.Time
-	Assigned_date          time.Time
-	User_id                int
-	Latitude               string
-	Longitude              string
-	Location               string
-	Guarantee_expired_date string
-	Trash_version_id       int
-	Custom_name            string
+	Id                     int       `json:"id"`
+	Trash_code             string    `json:"trash_code"`
+	Assigned               string    `json:"assigned"`
+	Created_date           time.Time `json:"created_date"`
+	Assigned_date          time.Time `json:"assigned_date"`
+	User_id                int       `json:"user_id"`
+	Latitude               string    `json:"latitude"`
+	Longitude              string    `json:"longitude"`
+	Location               string    `json:"location"`
+	Guarantee_expired_date time.Time `json:"guarantee_expired_date"`
+	Trash_version_id       int       `json:"trash_version_id"`
+	Custom_name            string    `json:"custom_name"`
 }
 
 type Trash_capacity struct {

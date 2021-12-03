@@ -142,10 +142,10 @@ func (idb *InDB) AuthRegister(c *gin.Context) {
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(userInput.Password), bcrypt.DefaultCost)
 	if err != nil {
-        result = gin.H{"status": "error", "msg": "Password Hashing Failed!"}
+		result = gin.H{"status": "error", "msg": "Password Hashing Failed!"}
 		c.JSON(http.StatusBadRequest, result)
 		return
-    }
+	}
 
 	userInput.Password = string(hashedPassword[:])
 
