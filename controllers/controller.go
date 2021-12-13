@@ -138,13 +138,13 @@ func (idb *InDB) GetSingleTrashCanCapacity(c *gin.Context) {
 		Last(&trashCapacity)
 
 	if resultGetSingleTrashCapacity.Error == gorm.ErrRecordNotFound { //attempt to get trash
-		resultTrash := idb.DB.Table("trash").
+		resultTrash, err := idb.DB.Table("trash").
 			Select("trash_version.organic_max_height, trash_version.inorganic_max_height").
 			Joins("left join trash_version on trash_version.id = trash.trash_version_id").
 			Where("trash.id = ?", trashCanID).
-			Last(&trashCapacity)
+			Rows()
 		trashCapacity.Trash_id, _ = strconv.Atoi(trashCanID)
-		if resultTrash.Error == gorm.ErrRecordNotFound {
+		if err == gorm.ErrRecordNotFound {
 			status = "success"
 			msg = "Trash with ID: " + trashCanID + " not found!"
 			result = gin.H{
@@ -155,9 +155,9 @@ func (idb *InDB) GetSingleTrashCanCapacity(c *gin.Context) {
 			c.JSON(http.StatusOK, result)
 			return
 		}
-		if resultTrash.Error != nil {
+		if err != nil {
 			status = "error"
-			msg = resultTrash.Error.Error()
+			msg = err.Error()
 
 			result = gin.H{
 				"status": status,
@@ -166,6 +166,21 @@ func (idb *InDB) GetSingleTrashCanCapacity(c *gin.Context) {
 
 			c.JSON(http.StatusInternalServerError, result)
 			return
+		}
+		defer resultTrash.Close()
+		for resultTrash.Next() {
+			var organic_max, inorganic_max int
+			errRow := resultTrash.Scan(&organic_max, inorganic_max)
+			if errRow != nil {
+				result = gin.H{
+					"status": "error",
+					"msg":    err.Error(),
+				}
+				c.JSON(http.StatusInternalServerError, result)
+				return
+			}
+			trashCapacity.Organic_max_height = organic_max
+			trashCapacity.Inorganic_max_height = inorganic_max
 		}
 		status = "success"
 		msg = "Get single trash can capacity successful"
