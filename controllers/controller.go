@@ -137,16 +137,46 @@ func (idb *InDB) GetSingleTrashCanCapacity(c *gin.Context) {
 		Where("trash_capacity.trash_id = ?", trashCanID).
 		Last(&trashCapacity)
 
-	if resultGetSingleTrashCapacity.Error == gorm.ErrRecordNotFound {
+	if resultGetSingleTrashCapacity.Error == gorm.ErrRecordNotFound { //attempt to get trash
+		resultTrash := idb.DB.Table("trash").
+			Select("trash.id as trash_id, trash_version.organic_max_height, trash_version.inorganic_max_height").
+			Joins("left join trash_version on trash_version.id = trash.trash_version_id").
+			Where("trash.id = ?", trashCanID).
+			Last(&trashCapacity)
+		if resultTrash.Error == gorm.ErrRecordNotFound {
+			status = "success"
+			msg = "Trash with ID: " + trashCanID + " not found!"
+			trashCapacity.Trash_id, _ = strconv.Atoi(trashCanID)
+			result = gin.H{
+				"status": status,
+				"msg":    msg,
+				"data":   trashCapacity,
+			}
+			c.JSON(http.StatusOK, result)
+			return
+		}
+		if resultTrash.Error != nil {
+			status = "error"
+			msg = resultGetSingleTrashCapacity.Error.Error()
+
+			result = gin.H{
+				"status": status,
+				"msg":    msg,
+			}
+
+			c.JSON(http.StatusInternalServerError, result)
+			return
+		}
 		status = "success"
-		msg = "Trash with ID: " + trashCanID + " not found!"
-		trashCapacity.Trash_id, _ = strconv.Atoi(trashCanID)
+		msg = "Get single trash can capacity successful"
 		result = gin.H{
 			"status": status,
 			"msg":    msg,
 			"data":   trashCapacity,
 		}
-		c.JSON(http.StatusInternalServerError, result)
+		c.JSON(http.StatusOK, result)
+		return
+
 	} else if resultGetSingleTrashCapacity.Error == nil {
 		status = "success"
 		msg = "Get single trash can capacity successful"
