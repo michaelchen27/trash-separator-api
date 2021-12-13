@@ -157,7 +157,7 @@ func (idb *InDB) GetSingleTrashCanCapacity(c *gin.Context) {
 		}
 		if resultTrash.Error != nil {
 			status = "error"
-			msg = resultGetSingleTrashCapacity.Error.Error()
+			msg = resultTrash.Error.Error()
 
 			result = gin.H{
 				"status": status,
