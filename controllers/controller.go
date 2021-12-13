@@ -139,7 +139,7 @@ func (idb *InDB) GetSingleTrashCanCapacity(c *gin.Context) {
 
 	if resultGetSingleTrashCapacity.Error == gorm.ErrRecordNotFound { //attempt to get trash
 		resultTrash := idb.DB.Table("trash").
-			Select("trash.id as trash_id, trash_version.organic_max_height, trash_version.inorganic_max_height").
+			Select("trash.id as \"trash_id\", trash_version.organic_max_height, trash_version.inorganic_max_height").
 			Joins("left join trash_version on trash_version.id = trash.trash_version_id").
 			Where("trash.id = ?", trashCanID).
 			Last(&trashCapacity)
