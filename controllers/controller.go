@@ -137,7 +137,17 @@ func (idb *InDB) GetSingleTrashCanCapacity(c *gin.Context) {
 		Where("trash_capacity.trash_id = ?", trashCanID).
 		Last(&trashCapacity)
 
-	if resultGetSingleTrashCapacity.Error == nil {
+	if resultGetSingleTrashCapacity.Error == gorm.ErrRecordNotFound {
+		status = "success"
+		msg = "Trash with ID: " + trashCanID + " not found!"
+		trashCapacity.Trash_id, _ = strconv.Atoi(trashCanID)
+		result = gin.H{
+			"status": status,
+			"msg":    msg,
+			"data":   trashCapacity,
+		}
+		c.JSON(http.StatusInternalServerError, result)
+	} else if resultGetSingleTrashCapacity.Error == nil {
 		status = "success"
 		msg = "Get single trash can capacity successful"
 
@@ -308,7 +318,47 @@ func (idb *InDB) GetTopTrashCans(c *gin.Context) {
 		Limit(5).
 		Find(&trashReading)
 
-	if resultGetTopTrashCans.Error == nil {
+	if resultGetTopTrashCans.Error != nil {
+		status = "error"
+		msg = fmt.Sprintf("db error: %v", resultGetTopTrashCans.Error.Error())
+		result = gin.H{
+			"status": status,
+			"msg":    msg,
+		}
+		c.JSON(http.StatusInternalServerError, result)
+		return
+	}
+
+	if len(trashReading) == 0 { //empty reading, try to fetch trash name only
+		resultTrashName := idb.DB.Table("trash").
+			Select("trash_code AS Trash_sorter_name, location AS Trash_sorter_location").
+			Where("user_id = ?", userId).
+			Limit(5).Find(&trashReading)
+		if resultTrashName.Error != nil {
+			result = gin.H{
+				"status": "error",
+				"msg":    fmt.Sprintf("Error trying to get trash name, Db error: %v", resultTrashName.Error.Error()),
+			}
+			c.JSON(http.StatusInternalServerError, result)
+			return
+		}
+		if len(trashReading) == 0 { // user has no trash can
+			trashReading = append(trashReading, structs.TrashReading{})
+			msg = "There is no trash can associated with the user!"
+		} else {
+			msg = "No record in current week!"
+		}
+		result = gin.H{
+			"user_id": userId,
+			"data":    trashReading,
+			"status":  "success",
+			"msg":     msg,
+		}
+		c.JSON(http.StatusOK, result)
+		return
+	}
+
+	if len(trashReading) != 0 {
 		status = "success"
 		msg = "Successfully get current week data"
 
@@ -320,16 +370,6 @@ func (idb *InDB) GetTopTrashCans(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, result)
-
-	} else {
-		status = "error"
-		msg = fmt.Sprintf("db error: %v", resultGetTopTrashCans.Error.Error())
-		result = gin.H{
-			"status": status,
-			"msg":    msg,
-		}
-
-		c.JSON(http.StatusInternalServerError, result)
 	}
 
 }
@@ -543,7 +583,7 @@ func (idb *InDB) GetTrashTypeWeek(c *gin.Context) {
 		rPrevWeek = rPrevWeek.Add(time.Hour)
 	}
 	var typeArr []string
-	for key, _ := range types {
+	for key := range types {
 		typeArr = append(typeArr, key)
 	}
 
@@ -632,7 +672,7 @@ func (idb *InDB) GetTrashTypeAllByUser(c *gin.Context) {
 		rPrevWeek = rPrevWeek.Add(time.Hour)
 	}
 	var typeArr []string
-	for key, _ := range types {
+	for key := range types {
 		typeArr = append(typeArr, key)
 	}
 
