@@ -64,10 +64,14 @@ func (idb *InDB) RegisterUserTrashCan(c *gin.Context) {
 	trashObject.Guarantee_expired_date = timeNow.Add(time.Hour * 24 * 365)
 	trashObject.User_id, _ = strconv.Atoi(userId)
 
-	trashObject.Location = userInput.Location
-	trashObject.Custom_name = userInput.Custom_name
-	trashObject.Latitude = userInput.Latitude
-	trashObject.Longitude = userInput.Longitude
+	if userInput.Location != "" {
+		trashObject.Location = userInput.Location
+	}
+	if userInput.Custom_name != "" {
+		trashObject.Custom_name = userInput.Custom_name
+	}
+	// trashObject.Latitude = userInput.Latitude
+	// trashObject.Longitude = userInput.Longitude
 
 	queryUpdate := idb.DB.Table("trash").Save(&trashObject)
 	if queryUpdate.Error != nil {
