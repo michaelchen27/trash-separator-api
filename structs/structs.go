@@ -8,9 +8,9 @@ type User struct {
 	Id           int
 	Name         string `json:"name"`
 	Email        string `json:"email"`
-	Telephone    string
-	Address      string
-	Company_name string
+	Telephone    string `json:"telephone"`
+	Address      string `json:"address"`
+	Company_name string `json:"company_name"`
 	Password     string `json:"password"`
 	Created_date time.Time
 	Updated_date time.Time
