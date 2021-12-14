@@ -194,8 +194,11 @@ func (idb *InDB) NotImplemented(c *gin.Context) {
 }
 
 func (idb *InDB) CheckAuth(c *gin.Context) {
+
 	var res gin.H
 	var err error
+	var redisResponse string
+
 	userToken, err := c.Cookie("user_token")
 	if err != nil {
 		res = gin.H{
@@ -203,15 +206,34 @@ func (idb *InDB) CheckAuth(c *gin.Context) {
 		}
 		c.JSON(http.StatusUnauthorized, res)
 	}
-	_, err = idb.RedisClient.Get(userToken).Result()
+
+	redisResponse, err = idb.RedisClient.Get(userToken).Result()
 	if err != nil {
 		res = gin.H{
 			"status": "unauthorized",
 		}
 		c.JSON(http.StatusUnauthorized, res)
 	}
+
+	// Check if user is admin
+	user := structs.User{}
+	json.Unmarshal([]byte(redisResponse), &user)
+
+	resultGetUser := idb.DB.Table("user").
+		Select("admin").
+		Where("id = ?", user.Id).
+		First(&user)
+
+	if resultGetUser.Error != nil {
+		res = gin.H{
+			"status": "unauthorized", //user doesn't exist
+		}
+		c.JSON(http.StatusUnauthorized, res)
+	}
+
 	res = gin.H{
-		"status": "logged in",
+		"status":  "logged in",
+		"isAdmin": user.Admin,
 	}
 	c.JSON(http.StatusOK, res)
 }
