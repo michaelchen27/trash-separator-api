@@ -62,10 +62,12 @@ func (idb *InDB) MWCheckNodeToken() gin.HandlerFunc {
 
 		if idb.Middleware {
 			log.Println("[NODE] Executing Node Token middleware")
-			//check for cookie
+			//check for token
 			trashNode := structs.Trash{}
-			token, err := c.Cookie("node_token")
-			if err != nil {
+			// token, err := c.Cookie("node_token")
+			token := c.PostForm("node_token")
+			// if err != nil {
+			if token == "" {
 				result := gin.H{"status": "not authorized", "msg": "invalid trash code"}
 				c.JSON(http.StatusUnauthorized, result)
 				c.Abort()
@@ -73,7 +75,7 @@ func (idb *InDB) MWCheckNodeToken() gin.HandlerFunc {
 			}
 			log.Printf("[NODE] token = %s", token)
 
-			//check if cookie is valid or not
+			//check if token is valid or not
 			resJSON, err := idb.RedisClient.Get(token).Result()
 			if err != nil && err != redis.Nil {
 				log.Printf("Error retrieving trash info from redis, trash_code: %v", token)

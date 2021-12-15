@@ -25,8 +25,8 @@ func main() {
 	router.Use(cors.Default())
 
 	// Microcontroller -> Server
-	router.POST("/node/sendLog", inDB.SendLog)
-	router.POST("/node/sendCapacity", inDB.SendCapacity)
+	router.POST("/node/sendLog", inDB.MWCheckNodeToken(), inDB.SendLog)
+	router.POST("/node/sendCapacity", inDB.MWCheckNodeToken(), inDB.SendCapacity)
 
 	// Server -> Web
 	router.GET("/node/getCapacity/:trash_can_id", inDB.MWCheckUserTokenCookie(), inDB.GetSingleTrashCanCapacity)

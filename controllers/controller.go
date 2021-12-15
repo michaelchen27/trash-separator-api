@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,9 +22,10 @@ func (idb *InDB) SendLog(c *gin.Context) {
 		msg    string
 	)
 
-	trashcanID, err := strconv.Atoi(c.PostForm("trash_can_id"))
-	if err != nil {
-		result = gin.H{"status": "error", "msg": "invalid trash id format"}
+	// trashcanID, err := strconv.Atoi(c.PostForm("trash_can_id"))
+	trashcanID, assigned, err := getNodeIDFromRedis(idb, c)
+	if err != nil || trashcanID == 0 || assigned == 0 {
+		result = gin.H{"status": "error", "msg": "invalid trash id"}
 		c.JSON(http.StatusBadRequest, result)
 		return
 	}
@@ -82,7 +84,13 @@ func (idb *InDB) SendCapacity(c *gin.Context) {
 		msg    string
 	)
 
-	trashcanID, _ := strconv.Atoi(c.PostForm("trash_can_id"))
+	// trashcanID, _ := strconv.Atoi(c.PostForm("trash_can_id"))
+	trashcanID, assigned, err := getNodeIDFromRedis(idb, c)
+	if err != nil || trashcanID == 0 || assigned == 0 {
+		result = gin.H{"status": "error", "msg": "invalid trash id"}
+		c.JSON(http.StatusBadRequest, result)
+		return
+	}
 	organicCapacity, _ := strconv.Atoi(c.PostForm("organic_capacity"))
 	inorganicCapacity, _ := strconv.Atoi(c.PostForm("inorganic_capacity"))
 
@@ -782,6 +790,22 @@ func getUserIdFromRedis(idb *InDB, c *gin.Context) string {
 	user := structs.User{}
 	json.Unmarshal([]byte(redisResp), &user)
 	return strconv.Itoa(user.Id)
+}
+
+func getNodeIDFromRedis(idb *InDB, c *gin.Context) (id int, assigned int, err error) {
+	token := c.PostForm("node_token")
+	if token == "" {
+		return 0, 0, errors.New("error token does not exists")
+	}
+	redisResp, err := idb.RedisClient.Get(token).Result()
+	if err != nil {
+		return 0, 0, errors.New("error getting redis result")
+	}
+	trash := structs.Trash{}
+	json.Unmarshal([]byte(redisResp), &trash)
+	id = trash.Id
+	assigned, _ = strconv.Atoi(trash.Assigned)
+	return
 }
 
 func (idb *InDB) GetAllTrashVersion(c *gin.Context) {
