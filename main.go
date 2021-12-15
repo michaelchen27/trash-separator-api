@@ -4,6 +4,7 @@ import (
 	"os"
 	"trash-separator/config"
 	"trash-separator/controllers"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -17,10 +18,11 @@ func main() {
 
 	router := gin.Default()
 
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"https://williamlim.me","https://trash-separator-api.herokuapp.com"}
-  
-	router.Use(cors.New(config))
+	// config := cors.DefaultConfig()
+	// config.AllowOrigins = []string{"https://williamlim.me","https://trash-separator-api.herokuapp.com"}
+
+	// router.Use(cors.New(config))
+	router.Use(cors.Default())
 
 	// Microcontroller -> Server
 	router.POST("/node/sendLog", inDB.SendLog)
