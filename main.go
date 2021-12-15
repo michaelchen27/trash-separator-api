@@ -6,6 +6,7 @@ import (
 	"trash-separator/controllers"
 
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +18,7 @@ func main() {
 	inDB.EnableMiddleware()
 
 	router := gin.Default()
+	router.Use(static.Serve("/", static.LocalFile("./frontend", true)))
 
 	// config := cors.DefaultConfig()
 	// config.AllowOrigins = []string{"https://williamlim.me","https://trash-separator-api.herokuapp.com"}
@@ -48,7 +50,7 @@ func main() {
 	router.POST("/api/register", inDB.AuthRegister)
 	router.POST("/api/checkLogin", inDB.CheckAuth)
 	router.POST("/api/logout", inDB.AuthLogout)
-	router.GET("/", inDB.NotImplemented)
+	// router.GET("/", inDB.NotImplemented)
 
 	// Trash Registration
 	router.POST("/api/registerTrashCan", inDB.MWCheckUserTokenCookie(), inDB.RegisterUserTrashCan)
