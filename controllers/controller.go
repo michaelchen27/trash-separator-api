@@ -611,7 +611,7 @@ func (idb *InDB) GetTrashTypeWeek(c *gin.Context) {
 	resp = []structs.TypeChartResponse{}
 	types := make(map[string]bool)
 	//fill missing hours
-	for rPrevWeek.Before(tn) {
+	for rPrevWeek.Before(rounded) {
 		tempResp := structs.TypeChartResponse{}
 		if chartData[rPrevWeek] == nil {
 			chartData[rPrevWeek] = make(map[string]int)
@@ -700,7 +700,7 @@ func (idb *InDB) GetTrashTypeAllByUser(c *gin.Context) {
 	resp = []structs.TypeChartResponse{}
 	types := make(map[string]bool)
 	//fill missing hours
-	for rPrevWeek.Before(tn) {
+	for rPrevWeek.Before(rounded) {
 		tempResp := structs.TypeChartResponse{}
 		if chartData[rPrevWeek] == nil {
 			chartData[rPrevWeek] = make(map[string]int)
@@ -1029,10 +1029,10 @@ func (idb *InDB) DeleteTrashVersion(c *gin.Context) {
 
 func (idb *InDB) GetAllTrash(c *gin.Context) {
 	var (
-		trash []structs.Trash
-		result       gin.H
-		status       string
-		msg          string
+		trash  []structs.Trash
+		result gin.H
+		status string
+		msg    string
 	)
 
 	resultGetAllTrash := idb.DB.Table("trash").Find(&trash)
@@ -1065,10 +1065,10 @@ func (idb *InDB) GetAllTrash(c *gin.Context) {
 
 func (idb *InDB) AddTrash(c *gin.Context) {
 	var (
-		result gin.H
+		result      gin.H
 		trashObject structs.Trash
-		status string
-		msg    string
+		status      string
+		msg         string
 	)
 
 	trash_code := c.PostForm("trash_code")
@@ -1103,7 +1103,7 @@ func (idb *InDB) AddTrash(c *gin.Context) {
 	fmt.Println(trashversionid)
 
 	insertTrash := structs.TrashAdd{
-		Trash_code:         trash_code,
+		Trash_code:       trash_code,
 		Trash_version_id: trashversionid,
 	}
 
