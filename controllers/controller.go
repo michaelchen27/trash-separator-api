@@ -1026,3 +1026,110 @@ func (idb *InDB) DeleteTrashVersion(c *gin.Context) {
 	}
 
 }
+
+func (idb *InDB) GetAllTrash(c *gin.Context) {
+	var (
+		trash []structs.Trash
+		result       gin.H
+		status       string
+		msg          string
+	)
+
+	resultGetAllTrash := idb.DB.Table("trash").Find(&trash)
+
+	if resultGetAllTrash.Error == nil {
+		status = "success"
+		msg = "Successfully get all data of trash version"
+
+		result = gin.H{
+			"status": status,
+			"msg":    msg,
+			"count":  resultGetAllTrash.RowsAffected,
+			"data":   trash,
+		}
+
+		c.JSON(http.StatusOK, result)
+
+	} else {
+		status = "error"
+		msg = resultGetAllTrash.Error.Error()
+
+		result = gin.H{
+			"status": status,
+			"msg":    msg,
+		}
+		c.JSON(http.StatusInternalServerError, result)
+
+	}
+}
+
+func (idb *InDB) AddTrash(c *gin.Context) {
+	var (
+		result gin.H
+		trashObject structs.Trash
+		status string
+		msg    string
+	)
+
+	trash_code := c.PostForm("trash_code")
+	fmt.Println(trash_code)
+	if trash_code == "" {
+		result = gin.H{"status": "error", "msg": "invalid trash version name (empty string)"}
+		c.JSON(http.StatusBadRequest, result)
+		return
+	}
+
+	trashversionname := c.PostForm("trash_version_name")
+	fmt.Println(trashversionname)
+	if trashversionname == "" {
+		result = gin.H{"status": "error", "msg": "invalid trash version name (empty string)"}
+		c.JSON(http.StatusBadRequest, result)
+		return
+	}
+	query := idb.DB.Table("trash_version").Select("*").Where("version_name = ?", trashversionname).First(&trashObject)
+	if query.Error != nil {
+		log.Printf("error fetching data from database: %v", query.Error.Error())
+		if query.Error == gorm.ErrRecordNotFound {
+			result = gin.H{"status": "unauthorized", "mgs": "record not found"}
+			c.JSON(http.StatusBadRequest, result)
+		} else {
+			result = gin.H{"status": "internal server error", "msg": "failed, database error fetch trash info"}
+			c.JSON(http.StatusInternalServerError, result)
+		}
+		return
+	}
+
+	trashversionid := trashObject.Id
+	fmt.Println(trashversionid)
+
+	insertTrash := structs.TrashAdd{
+		Trash_code:         trash_code,
+		Trash_version_id: trashversionid,
+	}
+
+	resultInsertTrash := idb.DB.Table("trash").Create(&insertTrash)
+
+	if resultInsertTrash.Error == nil {
+		status = "success"
+		msg = "Trash successfully added"
+
+		result = gin.H{
+			"status":  status,
+			"message": msg,
+		}
+
+		c.JSON(http.StatusOK, result)
+
+	} else {
+		status = "error"
+		msg = "Trash insertion failed"
+
+		result = gin.H{
+			"status":  status,
+			"message": msg,
+		}
+
+		c.JSON(http.StatusInternalServerError, result)
+	}
+
+}

@@ -61,6 +61,8 @@ func main() {
 		router.POST("/api/addTrashVersion", inDB.AddTrashVersion)
 		router.PUT("/api/editTrashVersion/:trash_version_id", inDB.EditTrashVersion)
 		router.DELETE("/api/deleteTrashVersion/:trash_version_id", inDB.DeleteTrashVersion)
+		router.GET("/api/getAllTrash", inDB.GetAllTrash)
+		router.POST("/api/addTrash", inDB.AddTrash)
 	}
 
 	router.Run("localhost:8888")
