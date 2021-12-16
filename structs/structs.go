@@ -94,3 +94,8 @@ type TypeChartResponse struct {
 	Created_date time.Time
 	Data_type    []map[string]string
 }
+
+type TrashAdd struct {
+	Trash_code             string
+	Trash_version_id       int
+}
